@@ -1,152 +1,164 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
-
-const navItems = [
-  { href: "#hero", label: "Inicio" },
-  { href: "#sobre-mi", label: "Sobre Mí" },
-  { href: "#proyectos", label: "Proyectos" },
-  { href: "#skills", label: "Skills" },
-  { href: "#contact", label: "Contacto" },
-];
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { navItems, personalInfo } from "../data/portfolio";
 
 export default function Navigation() {
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [activeSection, setActiveSection] = useState("hero");
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
+      setScrolled(window.scrollY > 60);
     };
 
+    const sections = document.querySelectorAll("section[id]");
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveSection(entry.target.id);
+          }
+        });
+      },
+      { threshold: 0.3 }
+    );
+
+    sections.forEach((section) => observer.observe(section));
     window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      observer.disconnect();
+    };
   }, []);
 
-  const handleNavClick = () => {
-    setMobileMenuOpen(false);
+  const scrollTo = (href: string) => {
+    const element = document.querySelector(href);
+    element?.scrollIntoView({ behavior: "smooth" });
+    setMenuOpen(false);
   };
-
-  if (!mounted) return null;
 
   return (
     <>
-      <header
-        className="fixed top-0 left-0 right-0 z-50 transition-all duration-500"
-        style={{
-          backgroundColor: isScrolled ? "rgba(15, 15, 26, 0.95)" : "transparent",
-          borderBottom: isScrolled ? "1px solid rgba(124, 58, 237, 0.3)" : "none",
-          backdropFilter: isScrolled ? "blur(20px)" : "none",
-          boxShadow: isScrolled ? "0 0 40px -10px rgba(124, 58, 237, 0.2)" : "none",
-        }}
+      <motion.nav
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.2 }}
+        className={`fixed top-0 left-0 right-0 z-[900] transition-all duration-500 ${
+          scrolled
+            ? "bg-[rgba(7,7,13,0.88)] backdrop-blur-[20px] border-b border-[rgba(201,169,110,0.08)]"
+            : "bg-transparent"
+        }`}
       >
-        <nav className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <a
+        <div className="max-w-[1280px] mx-auto px-8 h-16 flex items-center justify-between">
+          <motion.a
             href="#hero"
-            className="text-xl font-bold text-white group relative"
-            aria-label="Ir al inicio"
+            onClick={(e) => {
+              e.preventDefault();
+              scrollTo("#hero");
+            }}
+            className="font-mono text-[#c9a96e] text-xs tracking-[0.2em] transition-all duration-300 hover:tracking-[0.35em]"
           >
-            <span className="relative z-10">
-              <span className="text-purple-500 transition-all duration-300 group-hover:text-purple-400">&lt;</span>
-              Sergio
-              <span className="text-purple-500 transition-all duration-300 group-hover:text-purple-400">/&gt;</span>
-            </span>
-            <span className="absolute -inset-2 rounded-lg bg-purple-500/20 scale-0 group-hover:scale-100 transition-transform duration-300 -z-10" />
-          </a>
+            &lt;SERGIO/&gt;
+          </motion.a>
 
           <div className="hidden md:flex items-center gap-8">
-            {navItems.map((item, index) => (
-              <a
-                key={item.href}
-                href={item.href}
-                onClick={handleNavClick}
-                className="relative text-gray-400 hover:text-purple-400 transition-all duration-300 text-sm font-medium py-2 group"
-                style={{
-                  animation: `fadeSlideIn 0.5s ease-out ${index * 0.1}s both`,
-                }}
-              >
-                <span className="relative z-10">{item.label}</span>
-                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-purple-500 to-cyan-500 transition-all duration-500 group-hover:w-full" />
-                <span className="absolute -inset-2 rounded-lg bg-purple-500/10 scale-0 group-hover:scale-100 transition-transform duration-300 opacity-0 group-hover:opacity-100" />
-              </a>
-            ))}
+            {navItems.map((item, index) => {
+              const sectionId = item.href.replace("#", "");
+              const isActive = activeSection === sectionId;
+              return (
+                <motion.a
+                  key={item.href}
+                  href={item.href}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    scrollTo(item.href);
+                  }}
+                  className={`text-[0.7rem] tracking-[0.18em] uppercase transition-all duration-300 relative ${
+                    isActive ? "text-[#c9a96e]" : "text-[rgba(255,255,255,0.35)]"
+                  }`}
+                  style={{ position: "relative" }}
+                  whileHover={{ y: -2 }}
+                >
+                  {item.label}
+                  <motion.span
+                    className="absolute bottom-[-4px] left-0 h-[1px] bg-[#c9a96e]"
+                    initial={{ width: isActive ? "100%" : "0" }}
+                    animate={{ width: isActive ? "100%" : "0" }}
+                    whileHover={{ width: "100%" }}
+                    transition={{ duration: 0.3 }}
+                  />
+                </motion.a>
+              );
+            })}
           </div>
+
+          <motion.a
+            href={`mailto:${personalInfo.email}`}
+            className="hidden md:flex text-[0.7rem] tracking-[0.2em] uppercase border border-[rgba(201,169,110,0.35)] text-[#c9a96e] px-5 py-2 transition-all duration-300 hover:bg-[rgba(201,169,110,0.15)]"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            Contáctame
+          </motion.a>
 
           <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden w-12 h-12 flex flex-col items-center justify-center gap-1.5 relative z-50 group"
-            aria-label={mobileMenuOpen ? "Cerrar menú" : "Abrir menú"}
-            aria-expanded={mobileMenuOpen}
+            onClick={() => setMenuOpen(!menuOpen)}
+            className="md:hidden flex flex-col gap-[5px] cursor-pointer p-2"
+            aria-label="Menú"
           >
-            <span
-              className={`w-7 h-0.5 bg-white rounded-full transition-all duration-300 ${
-                mobileMenuOpen ? "rotate-45 translate-y-2" : ""
-              }`}
+            <motion.span
+              animate={{
+                rotate: menuOpen ? 45 : 0,
+                y: menuOpen ? 6 : 0,
+              }}
+              className="w-6 h-[1px] bg-[#c9a96e] block"
             />
-            <span
-              className={`w-7 h-0.5 bg-white rounded-full transition-all duration-300 ${
-                mobileMenuOpen ? "scale-0 opacity-0" : ""
-              }`}
+            <motion.span
+              animate={{ opacity: menuOpen ? 0 : 1 }}
+              className="w-6 h-[1px] bg-[#c9a96e] block"
             />
-            <span
-              className={`w-7 h-0.5 bg-white rounded-full transition-all duration-300 ${
-                mobileMenuOpen ? "-rotate-45 -translate-y-2" : ""
-              }`}
+            <motion.span
+              animate={{
+                rotate: menuOpen ? -45 : 0,
+                y: menuOpen ? -6 : 0,
+              }}
+              className="w-6 h-[1px] bg-[#c9a96e] block"
             />
           </button>
-        </nav>
-      </header>
+        </div>
+      </motion.nav>
 
-      {mobileMenuOpen && (
-        <div
-          className="fixed inset-0 z-40 md:hidden pt-24"
-          style={{
-            backgroundColor: "#0F0F1A",
-            animation: "slideIn 0.3s ease-out",
-          }}
-        >
-          <div className="flex flex-col items-center gap-10 p-8">
+      <AnimatePresence>
+        {menuOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-[#07070d] z-[850] flex flex-col items-center justify-center gap-10 md:hidden"
+          >
             {navItems.map((item, index) => (
-              <a
+              <motion.a
                 key={item.href}
                 href={item.href}
-                onClick={handleNavClick}
-                className="text-3xl text-white hover:text-purple-400 transition-all duration-300 hover:scale-110"
-                style={{
-                  animation: `fadeSlideIn 0.5s ease-out ${index * 0.1}s both`,
+                onClick={(e) => {
+                  e.preventDefault();
+                  scrollTo(item.href);
                 }}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.07 }}
+                className="text-[1.8rem] tracking-[0.2em] uppercase text-[rgba(255,255,255,0.45)] transition-colors duration-300 hover:text-[#c9a96e]"
               >
                 {item.label}
-              </a>
+              </motion.a>
             ))}
-          </div>
-        </div>
-      )}
-
-      <style>{`
-        @keyframes fadeSlideIn {
-          from {
-            opacity: 0;
-            transform: translateY(-10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        @keyframes slideIn {
-          from {
-            opacity: 0;
-            transform: translateX(100%);
-          }
-          to {
-            opacity: 1;
-            transform: translateX(0);
-          }
-        }
-      `}</style>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }

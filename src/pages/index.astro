@@ -1,5 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import BackgroundAnimations from '../components/BackgroundAnimations';
 import Navigation from '../components/Navigation';
 import Hero from '../components/Hero';
 import About from '../components/About';
@@ -9,16 +10,15 @@ import Contact from '../components/Contact';
 import Footer from '../components/Footer';
 ---
 
-<Layout title="Sergio Isaac | Estudiante de Desarrollo Web">
+<Layout title="Sergio Isaac | Desarrollador Web">
+  <BackgroundAnimations client:load />
   <Navigation client:load />
-  
   <main>
-    <Hero client:visible />
+    <Hero client:load />
     <About client:visible />
     <Projects client:visible />
     <Skills client:visible />
     <Contact client:visible />
   </main>
-  
   <Footer client:visible />
 </Layout>

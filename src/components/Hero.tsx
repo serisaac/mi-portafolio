@@ -1,145 +1,98 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { personalInfo } from "../data/portfolio";
+import { useEffect, useState, useRef } from "react";
+import { motion, useMotionValue, useSpring, useScroll, useTransform } from "framer-motion";
+import { personalInfo, typewriterTexts } from "../data/portfolio";
 
-interface Particle {
-  id: number;
-  x: number;
-  y: number;
-  size: number;
-  duration: number;
-  delay: number;
-  color: "purple" | "cyan" | "pink";
-  type: "circle" | "star" | "diamond";
-}
-
-function generateParticles(count: number): Particle[] {
-  return Array.from({ length: count }, (_, i) => ({
-    id: i,
-    x: Math.random() * 100,
-    y: Math.random() * 100,
-    size: Math.random() * 6 + 2,
-    duration: Math.random() * 10 + 8,
-    delay: Math.random() * 5,
-    color: (["purple", "cyan", "pink"] as const)[Math.floor(Math.random() * 3)],
-    type: (["circle", "star", "diamond"] as const)[Math.floor(Math.random() * 3)],
-  }));
-}
-
-function GlitchText({ text }: { text: string }) {
-  const [glitch, setGlitch] = useState(false);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setGlitch(true);
-      setTimeout(() => setGlitch(false), 200);
-    }, 3000);
-    return () => clearInterval(interval);
-  }, []);
-
+export default function Hero() {
   return (
-    <h1
-      className="text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold mb-6"
-      style={{ fontFamily: '"Space Grotesk", sans-serif' }}
+    <section
+      id="hero"
+      className="min-h-screen bg-[#07070d] flex items-center relative overflow-hidden"
     >
-      <span className="text-white">Hola, soy </span>
-      <span
-        className={`relative block bg-gradient-to-r from-purple-400 via-pink-500 to-purple-600 bg-clip-text text-transparent ${
-          glitch ? "animate-glitch" : ""
-        }`}
-        style={{
-          textShadow: glitch
-            ? "0.05em 0 0 rgba(255,0,0,0.75), -0.025em -0.05em 0 rgba(0,255,0,0.75), 0.025em 0.05em 0 rgba(0,0,255,0.75)"
-            : "none",
-        }}
-      >
-        {text}
-        {glitch && (
-          <>
-            <span
-              className="absolute top-0 left-0 bg-purple-600 opacity-50"
-              style={{
-                clipPath: "polygon(0 20%, 100% 20%, 100% 40%, 0 40%)",
-                transform: "translateX(-2px)",
-                animation: "glitch1 0.2s infinite",
-              }}
-            >
-              {text}
-            </span>
-            <span
-              className="absolute top-0 left-0 bg-cyan-600 opacity-50"
-              style={{
-                clipPath: "polygon(0 60%, 100% 60%, 100% 80%, 0 80%)",
-                transform: "translateX(2px)",
-                animation: "glitch2 0.2s infinite",
-              }}
-            >
-              {text}
-            </span>
-          </>
-        )}
-      </span>
-    </h1>
+      <HeroGridBg />
+      <HeroGlows />
+      <HeroParticles />
+      
+      <div className="max-w-[1280px] mx-auto px-8 pt-20 min-h-screen flex items-center">
+        <div className="grid lg:grid-cols-2 gap-16 items-center w-full">
+          <HeroContent />
+          <HeroPhoto />
+        </div>
+      </div>
+      
+      <ScrollIndicator />
+    </section>
   );
 }
 
-function OrbitingImage() {
-  const [rotation, setRotation] = useState(0);
+function HeroGridBg() {
+  return (
+    <div
+      className="absolute inset-0 pointer-events-none"
+      style={{
+        backgroundImage: `linear-gradient(rgba(201,169,110,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(201,169,110,0.04) 1px, transparent 1px)`,
+        backgroundSize: "80px 80px",
+      }}
+    />
+  );
+}
+
+function HeroGlows() {
+  return (
+    <>
+      <div
+        className="absolute top-[30%] left-[20%] w-[420px] h-[420px] rounded-full pointer-events-none"
+        style={{ background: "rgba(201,169,110,0.04)", filter: "blur(100px)" }}
+      />
+      <div
+        className="absolute bottom-[25%] right-[20%] w-[360px] h-[360px] rounded-full pointer-events-none"
+        style={{ background: "rgba(67,56,202,0.12)", filter: "blur(90px)" }}
+      />
+    </>
+  );
+}
+
+function HeroParticles() {
+  const [particles, setParticles] = useState<
+    { id: number; left: string; top: string; size: number; duration: number; delay: number; dx: number }[]
+  >([]);
 
   useEffect(() => {
-    let angle = 0;
-    const animate = () => {
-      angle += 0.5;
-      setRotation(angle);
-      requestAnimationFrame(animate);
-    };
-    const frame = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(frame);
+    const newParticles = Array.from({ length: 55 }, (_, i) => ({
+      id: i,
+      left: `${Math.random() * 100}%`,
+      top: `${Math.random() * 100}%`,
+      size: Math.random() * 2 + 0.5,
+      duration: Math.random() * 20 + 10,
+      delay: Math.random() * -20,
+      dx: Math.random() * 20 - 10,
+    }));
+    setParticles(newParticles);
   }, []);
 
   return (
-    <div className="relative w-64 h-64 md:w-80 md:h-80">
-      <div
-        className="absolute inset-0 rounded-full"
-        style={{
-          background: "conic-gradient(from 0deg, transparent, rgba(124, 58, 237, 0.3), transparent, rgba(6, 182, 212, 0.3), transparent)",
-          animation: "spin 4s linear infinite",
-          filter: "blur(2px)",
-        }}
-      />
-      <div
-        className="absolute inset-0 rounded-full"
-        style={{
-          background: "conic-gradient(from 180deg, transparent, rgba(236, 72, 153, 0.3), transparent, rgba(124, 58, 237, 0.3), transparent)",
-          animation: "spin 6s linear infinite reverse",
-          filter: "blur(4px)",
-        }}
-      />
-      <div
-        className="absolute inset-4 rounded-full overflow-hidden border-4 border-purple-500/50"
-        style={{
-          boxShadow: "0 0 60px -10px rgba(124, 58, 237, 0.8), inset 0 0 60px -10px rgba(124, 58, 237, 0.3)",
-          transform: `perspective(500px) rotateY(${rotation * 0.1}deg) rotateX(${Math.sin(rotation * 0.02) * 10}deg)`,
-        }}
-      >
-        <img
-          src={personalInfo.photo}
-          alt="Foto de Sergio Isaac"
-          className="w-full h-full object-cover"
-          style={{ filter: "saturate(1.2) contrast(1.1)" }}
-        />
-      </div>
-      {[0, 60, 120, 180, 240, 300].map((deg, i) => (
-        <div
-          key={i}
-          className="absolute w-3 h-3 rounded-full"
+    <div className="absolute inset-0 pointer-events-none overflow-hidden">
+      {particles.map((p) => (
+        <motion.div
+          key={p.id}
+          className="absolute rounded-full bg-[#c9a96e]"
           style={{
-            top: "50%",
-            left: "50%",
-            transform: `rotate(${deg + rotation}deg) translateX(140px) translateY(-50%)`,
-            background: ["#7C3AED", "#06B6D4", "#EC4899"][i % 3],
-            boxShadow: `0 0 20px ${["#7C3AED", "#06B6D4", "#EC4899"][i % 3]}`,
+            left: p.left,
+            top: p.top,
+            width: p.size,
+            height: p.size,
+          }}
+          animate={{
+            opacity: [0, 0.55, 0],
+            y: [0, -50, -100],
+            x: [0, p.dx, 0],
+          }}
+          transition={{
+            duration: p.duration,
+            delay: p.delay,
+            repeat: Infinity,
+            ease: "easeInOut",
           }}
         />
       ))}
@@ -147,217 +100,284 @@ function OrbitingImage() {
   );
 }
 
-function RippleButton({ href, children, primary = true }: { href: string; children: React.ReactNode; primary?: boolean }) {
-  const [ripples, setRipples] = useState<{ x: number; y: number; id: number }[]>([]);
+function HeroContent() {
+  const [glitching1, setGlitching1] = useState(false);
+  const [glitching2, setGlitching2] = useState(false);
+  const [typeIndex, setTypeIndex] = useState(0);
+  const [charIndex, setCharIndex] = useState(0);
+  const [deleting, setDeleting] = useState(false);
 
-  const handleClick = (e: React.MouseEvent) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const newRipple = {
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top,
-      id: Date.now(),
-    };
-    setRipples((prev) => [...prev, newRipple]);
-    setTimeout(() => {
-      setRipples((prev) => prev.filter((r) => r.id !== newRipple.id));
-    }, 600);
-  };
+  useEffect(() => {
+    const glitchInterval = setInterval(() => {
+      setGlitching1(true);
+      setTimeout(() => setGlitching2(true), 80);
+      setTimeout(() => {
+        setGlitching1(false);
+        setGlitching2(false);
+      }, 200);
+    }, 4200);
+    return () => clearInterval(glitchInterval);
+  }, []);
+
+  useEffect(() => {
+    const currentText = typewriterTexts[typeIndex];
+    const timeout = setTimeout(() => {
+      if (!deleting && charIndex <= currentText.length) {
+        setCharIndex(charIndex + 1);
+        if (charIndex === currentText.length) {
+          setTimeout(() => setDeleting(true), 1800);
+        }
+      } else if (deleting && charIndex >= 0) {
+        setCharIndex(charIndex - 1);
+        if (charIndex === 0) {
+          setDeleting(false);
+          setTypeIndex((typeIndex + 1) % typewriterTexts.length);
+        }
+      }
+    }, deleting ? 28 : 62);
+    return () => clearTimeout(timeout);
+  }, [charIndex, deleting, typeIndex]);
 
   return (
-    <a
-      href={href}
-      onClick={handleClick}
-      className="relative px-8 py-4 font-semibold rounded-xl overflow-hidden transition-all duration-300 hover:scale-105"
-      style={{
-        backgroundColor: primary ? "#7C3AED" : "transparent",
-        border: primary ? "none" : "2px solid rgba(124, 58, 237, 0.5)",
-        boxShadow: primary ? "0 0 40px -5px rgba(124, 58, 237, 0.6)" : "none",
-        color: primary ? "white" : "#a78bfa",
-      }}
-    >
-      {ripples.map((ripple) => (
-        <span
-          key={ripple.id}
-          className="absolute rounded-full animate-ripple"
-          style={{
-            left: ripple.x,
-            top: ripple.y,
-            width: 10,
-            height: 10,
-            backgroundColor: "rgba(255, 255, 255, 0.4)",
-            transform: "translate(-50%, -50%)",
+    <div>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.6, delay: 0.2 }}
+        className="flex items-center gap-3 text-[0.68rem] tracking-[0.28em] uppercase text-[#c9a96e] mb-6"
+      >
+        <span>Disponible para proyectos</span>
+        <span className="w-[7px] h-[7px] rounded-full bg-[#34d399] animate-pulse" />
+      </motion.div>
+
+      <motion.h1
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.9, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
+        className="font-display font-black text-[clamp(3.2rem,10vw,8rem)] leading-[1] text-white tracking-[-0.03em] mb-4"
+      >
+        <GlitchText text="Sergio" glitching={glitching1} />
+        <br />
+        <span className="text-[rgba(255,255,255,0.22)] italic">Isaac</span>
+      </motion.h1>
+
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.6, delay: 1 }}
+        className="text-[0.78rem] tracking-[0.25em] uppercase text-[rgba(255,255,255,0.35)] h-[1.4em] overflow-hidden mb-4"
+      >
+        {typewriterTexts[typeIndex].slice(0, charIndex)}
+        <span className="text-[#c9a96e] animate-pulse">|</span>
+      </motion.div>
+
+      <motion.p
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.7, delay: 1.2 }}
+        className="text-[rgba(255,255,255,0.42)] leading-[1.7] max-w-[400px] text-sm"
+      >
+        {personalInfo.tagline}.
+      </motion.p>
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 1.5 }}
+        className="flex flex-wrap gap-4 mt-8"
+      >
+        <MagneticButton href="#projects">
+          <span>Ver Proyectos</span>
+        </MagneticButton>
+        <motion.a
+          href="#contact"
+          onClick={(e) => {
+            e.preventDefault();
+            document.querySelector("#contact")?.scrollIntoView({ behavior: "smooth" });
           }}
-        />
-      ))}
-      <span className="relative z-10">{children}</span>
-    </a>
+          className="flex items-center gap-2 text-[0.7rem] tracking-[0.25em] uppercase text-[rgba(255,255,255,0.3)] transition-colors duration-300 hover:text-[rgba(255,255,255,0.75)]"
+          whileHover={{ x: 5 }}
+        >
+          Contáctame
+          <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+          </svg>
+        </motion.a>
+      </motion.div>
+    </div>
   );
 }
 
-export default function Hero() {
-  const [particles] = useState<Particle[]>(() => generateParticles(40));
-  const [mounted, setMounted] = useState(false);
+function GlitchText({ text, glitching }: { text: string; glitching: boolean }) {
+  return (
+    <span className={`relative inline-block ${glitching ? "glitching" : ""}`}>
+      <span>{text}</span>
+      {glitching && (
+        <>
+          <span
+            className="absolute inset-0 text-[#c9a96e] opacity-50"
+            style={{
+              clipPath: "inset(30% 0 40% 0)",
+              transform: "translateX(-3px)",
+            }}
+          >
+            {text}
+          </span>
+          <span
+            className="absolute inset-0 text-[#22d3ee] opacity-50"
+            style={{
+              clipPath: "inset(60% 0 10% 0)",
+              transform: "translateX(3px)",
+            }}
+          >
+            {text}
+          </span>
+        </>
+      )}
+    </span>
+  );
+}
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+function MagneticButton({ href, children }: { href: string; children: React.ReactNode }) {
+  const ref = useRef<HTMLAnchorElement>(null);
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const springX = useSpring(x, { stiffness: 150, damping: 15 });
+  const springY = useSpring(y, { stiffness: 150, damping: 15 });
 
-  if (!mounted) return null;
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!ref.current) return;
+    const rect = ref.current.getBoundingClientRect();
+    x.set((e.clientX - rect.left - rect.width / 2) * 0.3);
+    y.set((e.clientY - rect.top - rect.height / 2) * 0.3);
+  };
+
+  const handleMouseLeave = () => {
+    x.set(0);
+    y.set(0);
+  };
 
   return (
-    <section
-      id="hero"
-      className="min-h-screen flex items-center justify-center relative overflow-hidden"
-      style={{ backgroundColor: "#0F0F1A" }}
-      aria-label="Hero section"
+    <motion.a
+      ref={ref}
+      href={href}
+      onClick={(e) => {
+        e.preventDefault();
+        document.querySelector(href)?.scrollIntoView({ behavior: "smooth" });
+      }}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      className="relative flex items-center gap-3 px-9 py-[0.9rem] border border-[#c9a96e] text-[#c9a96e] text-[0.7rem] tracking-[0.25em] uppercase overflow-hidden"
+      style={{ x: springX, y: springY }}
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
     >
-      <div
-        className="absolute inset-0"
-        style={{
-          backgroundImage: `
-            radial-gradient(circle at 50% 50%, rgba(124, 58, 237, 0.15) 0%, transparent 50%),
-            linear-gradient(rgba(124, 58, 237, 0.03) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(124, 58, 237, 0.03) 1px, transparent 1px)
-          `,
-          backgroundSize: "100% 100%, 60px 60px, 60px 60px",
-        }}
+      <motion.span
+        className="absolute inset-0 bg-[#c9a96e]"
+        initial={{ y: "100%" }}
+        whileHover={{ y: 0 }}
+        transition={{ duration: 0.3, ease: [0.76, 0, 0.24, 1] }}
       />
+      <span className="relative z-10 transition-colors duration-300 hover:text-[#07070d]">
+        {children}
+      </span>
+    </motion.a>
+  );
+}
 
-      {particles.map((p) => (
-        <div
-          key={p.id}
-          className="absolute"
-          style={{
-            left: `${p.x}%`,
-            top: `${p.y}%`,
-            animation: `float${p.id % 3} ${p.duration}s ease-in-out infinite ${p.delay}s`,
+function HeroPhoto() {
+  const ref = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ["start end", "end start"],
+  });
+  const y = useTransform(scrollYProgress, [0, 1], [-20, 20]);
+
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 1, delay: 0.6 }}
+      className="relative flex justify-end"
+    >
+      <div className="relative w-[320px] h-[440px] md:w-[280px] md:h-[380px] lg:w-[320px] lg:h-[440px]">
+        <div className="hero-corner tl" />
+        <div className="hero-corner br" />
+        
+        <motion.div
+          className="absolute inset-0 bg-[#c9a96e] z-20"
+          initial={{ scaleY: 1 }}
+          animate={{ scaleY: 0 }}
+          transition={{ duration: 1, delay: 0.8, ease: [0.76, 0, 0.24, 1] }}
+          style={{ transformOrigin: "top" }}
+        />
+        
+        <img
+          src="/ambiente.jpg"
+          alt="Sergio Isaac"
+          className="w-full h-full object-cover object-top transition-all duration-700"
+          style={{ clipPath: "inset(0 0 8% 0)" }}
+          onError={(e) => {
+            (e.target as HTMLImageElement).style.background = "linear-gradient(135deg, #0d0d18, #1a1a2e)";
+            (e.target as HTMLImageElement).removeAttribute("src");
           }}
+        />
+        
+        <div className="absolute inset-0 bg-gradient-to-t from-[rgba(7,7,13,0.75)] to-transparent" />
+        
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 1.8 }}
+          className="absolute right-[-20px] top-[33%] border border-[rgba(201,169,110,0.25)] bg-[rgba(13,13,24,0.85)] backdrop-blur-[12px] px-5 py-3 z-10"
+          style={{ y }}
         >
-          {p.type === "circle" && (
-            <div
-              className="rounded-full"
-              style={{
-                width: p.size,
-                height: p.size,
-                background: `radial-gradient(circle, ${p.color === "purple" ? "rgba(124, 58, 237, 0.8)" : p.color === "cyan" ? "rgba(6, 182, 212, 0.8)" : "rgba(236, 72, 153, 0.8)"}, transparent)`,
-                filter: "blur(2px)",
-                boxShadow: `0 0 ${p.size * 4}px ${p.color === "purple" ? "rgba(124, 58, 237, 0.5)" : p.color === "cyan" ? "rgba(6, 182, 212, 0.5)" : "rgba(236, 72, 153, 0.5)"}`,
-              }}
-            />
-          )}
-          {p.type === "star" && (
-            <svg width={p.size * 3} height={p.size * 3} viewBox="0 0 24 24" fill={p.color === "purple" ? "#7C3AED" : p.color === "cyan" ? "#06B6D4" : "#EC4899"}>
-              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-            </svg>
-          )}
-          {p.type === "diamond" && (
-            <div
-              style={{
-                width: p.size,
-                height: p.size,
-                background: p.color === "purple" ? "#7C3AED" : p.color === "cyan" ? "#06B6D4" : "#EC4899",
-                transform: "rotate(45deg)",
-                filter: "blur(1px)",
-              }}
-            />
-          )}
-        </div>
-      ))}
-
-      <div className="container mx-auto px-4 relative z-10">
-        <div className="flex flex-col lg:flex-row items-center justify-between gap-12 lg:gap-20">
-          <div className="flex-1 text-center lg:text-left">
-            <p className="text-purple-400 font-medium mb-4 tracking-widest uppercase text-sm animate-pulse">
-              {personalInfo.role}
-            </p>
-
-            <GlitchText text={personalInfo.firstName} />
-
-            <p className="text-lg md:text-xl text-gray-300 mb-8 max-w-xl animate-fade-in-up">
-              {personalInfo.tagline}
-            </p>
-
-            <div className="flex flex-wrap gap-4 justify-center lg:justify-start">
-              <RippleButton href="#proyectos" primary>
-                Ver Proyectos
-              </RippleButton>
-              <RippleButton href="#contact" primary={false}>
-                Contactarme
-              </RippleButton>
-            </div>
-          </div>
-
-          <OrbitingImage />
-        </div>
+          <span className="font-display font-black text-[1.1rem] text-[#c9a96e]">12+</span>
+          <span className="block text-[0.6rem] tracking-[0.2em] uppercase text-[rgba(255,255,255,0.3)]">
+            Tecnologías
+          </span>
+        </motion.div>
+        
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 2 }}
+          className="absolute left-[-20px] bottom-[28%] border border-[rgba(201,169,110,0.25)] bg-[rgba(13,13,24,0.85)] backdrop-blur-[12px] px-5 py-3 z-10"
+          style={{ y }}
+        >
+          <span className="font-display font-black text-[1.1rem] text-[#c9a96e]">2+</span>
+          <span className="block text-[0.6rem] tracking-[0.2em] uppercase text-[rgba(255,255,255,0.3)]">
+            Proyectos
+          </span>
+        </motion.div>
       </div>
 
-      <a
-        href="#sobre-mi"
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 text-purple-400/60 hover:text-purple-400 transition-all duration-300 hover:scale-110"
-        aria-label="Ir a sobre mí"
-      >
-        <div className="flex flex-col items-center gap-2" style={{ animation: "bounce 2s infinite" }}>
-          <span className="text-xs uppercase tracking-widest">Scroll</span>
-          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-          </svg>
-        </div>
-      </a>
-
       <style>{`
-        @keyframes float0 {
-          0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.3; }
-          25% { transform: translate(50px, -30px) scale(1.5); opacity: 0.8; }
-          50% { transform: translate(100px, -60px) scale(2); opacity: 0.6; }
-          75% { transform: translate(50px, -90px) scale(1.5); opacity: 0.4; }
-        }
-        @keyframes float1 {
-          0%, 100% { transform: translate(0, 0) rotate(0deg); opacity: 0.4; }
-          50% { transform: translate(-80px, -50px) rotate(180deg); opacity: 0.8; }
-        }
-        @keyframes float2 {
-          0%, 100% { transform: translate(0, 0); opacity: 0.2; }
-          33% { transform: translate(30px, -40px) scale(1.2); opacity: 0.9; }
-          66% { transform: translate(-30px, -80px) scale(0.8); opacity: 0.5; }
-        }
-        @keyframes bounce {
-          0%, 100% { transform: translateX(-50%) translateY(0); }
-          50% { transform: translateX(-50%) translateY(15px); }
-        }
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-        @keyframes glitch {
-          0%, 100% { text-shadow: none; }
-          20% { text-shadow: 0.05em 0 0 rgba(255,0,0,0.75), -0.025em -0.05em 0 rgba(0,255,0,0.75), 0.025em 0.05em 0 rgba(0,0,255,0.75); }
-          40% { text-shadow: -0.05em 0 0 rgba(255,0,0,0.75), 0.025em 0.05em 0 rgba(0,255,0,0.75), -0.025em -0.05em 0 rgba(0,0,255,0.75); }
-          60% { text-shadow: 0.025em 0 0 rgba(255,0,0,0.75), -0.025em -0.05em 0 rgba(0,255,0,0.75), 0.025em 0.05em 0 rgba(0,0,255,0.75); }
-          80% { text-shadow: -0.025em 0 0 rgba(255,0,0,0.75), 0.025em -0.05em 0 rgba(0,255,0,0.75), -0.025em 0.05em 0 rgba(0,0,255,0.75); }
-        }
-        @keyframes glitch1 {
-          0%, 100% { transform: translateX(-2px); }
-          50% { transform: translateX(2px); }
-        }
-        @keyframes glitch2 {
-          0%, 100% { transform: translateX(2px); }
-          50% { transform: translateX(-2px); }
-        }
-        @keyframes ripple {
-          0% { transform: translate(-50%, -50%) scale(0); opacity: 1; }
-          100% { transform: translate(-50%, -50%) scale(20); opacity: 0; }
-        }
-        @keyframes fade-in-up {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-fade-in-up {
-          animation: fade-in-up 1s ease-out 0.5s both;
-        }
-        .animate-ripple {
-          animation: ripple 0.6s ease-out forwards;
-        }
+        .hero-corner { position: absolute; width: 60px; height: 60px; z-index: 3; }
+        .hero-corner.tl { top: -12px; left: -12px; border-top: 1px solid rgba(201,169,110,0.6); border-left: 1px solid rgba(201,169,110,0.6); }
+        .hero-corner.br { bottom: -12px; right: -12px; border-bottom: 1px solid rgba(201,169,110,0.6); border-right: 1px solid rgba(201,169,110,0.6); }
       `}</style>
-    </section>
+    </motion.div>
+  );
+}
+
+function ScrollIndicator() {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ delay: 2.2 }}
+      className="absolute bottom-9 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
+    >
+      <motion.div
+        animate={{ y: [0, 10, 0] }}
+        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+        className="w-[1px] h-12 bg-gradient-to-b from-transparent to-[rgba(201,169,110,0.4)]"
+      />
+      <span className="text-[0.6rem] tracking-[0.3em] uppercase text-[rgba(255,255,255,0.15)]" style={{ writingMode: "vertical-lr" }}>
+        Scroll
+      </span>
+    </motion.div>
   );
 }
