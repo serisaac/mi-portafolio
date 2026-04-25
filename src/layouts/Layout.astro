@@ -1,6 +1,7 @@
 ---
 import '../styles/global.css';
 import { ClientRouter } from 'astro:transitions';
+import BackgroundAnimations from '../components/BackgroundAnimations';
 
 interface Props {
   title: string;
@@ -33,6 +34,7 @@ const { title, description = "Sergio Isaac - Estudiante de Desarrollo Web" } = A
     <ClientRouter />
   </head>
   <body class="min-h-screen">
+    <BackgroundAnimations client:load />
     <slot />
   </body>
 </html>
