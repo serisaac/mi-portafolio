@@ -333,9 +333,9 @@ function HeroPhoto() {
           className="absolute right-[-20px] top-[33%] border border-[rgba(201,169,110,0.25)] bg-[rgba(13,13,24,0.85)] backdrop-blur-[12px] px-5 py-3 z-10"
           style={{ y }}
         >
-          <span className="font-display font-black text-[1.1rem] text-[#c9a96e]">12+</span>
+          <span className="font-display font-black text-[1.1rem] text-[#c9a96e]">20+</span>
           <span className="block text-[0.6rem] tracking-[0.2em] uppercase text-[rgba(255,255,255,0.3)]">
-            Tecnologías
+            Certificados
           </span>
         </motion.div>
         
